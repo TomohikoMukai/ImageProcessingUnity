@@ -1,0 +1,19 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Process
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+Texture2D<float4> Texture;
+float time;
+
+[numthreads(32, 32, 1)]
+void Process(uint3 id : SV_DispatchThreadID)
+{
+    float sv = 0.5 * (sin(time + id.x * 0.1) + 1.0);
+    float cv = 0.5 * (sin(time + id.y * 0.1) + 1.0);
+    float r = Texture[id.xy].x * sv * cv;
+    float g = Texture[id.xy].y * sv * cv;
+    float b = Texture[id.xy].z * sv * cv;
+    Result[id.xy] = float4(r, g, b, 1);
+}
