@@ -1,5 +1,8 @@
-﻿#pragma kernel Process
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Process
 
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
 RWTexture2D<float4> Result;
 Texture2D<float4> Texture;
 float time;
@@ -25,7 +28,8 @@ float3 rgb2hsv(float4 rgb)
     {
         h = 60 * (b - g) / (maxValue - minValue) + 180;
     }
-    else if (minValue == g){
+    else if (minValue == g)
+    {
         h = 60 * (r - b) / (maxValue - minValue) + 300;
     }
     s = maxValue - minValue;
@@ -83,6 +87,7 @@ float4 hsv2rgb(float3 hsv)
 void Process(uint3 id : SV_DispatchThreadID)
 {
     float3 hsv = rgb2hsv(Texture[id.xy]);
-    hsv.x = fmod(hsv.x + time * 60.0f, 360);
+    float gmin = exp(-1.0 * 6.0);
+    hsv.z = (exp(-(1 - hsv.z) * (1 - hsv.z)  * 6.0) - gmin) / (1.0 - gmin);
     Result[id.xy] = hsv2rgb(hsv);
 }
