@@ -1,0 +1,106 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Process
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+Texture2D<float4> Texture;
+float time;
+
+float3 rgb2hsv(float4 rgb)
+{
+    float r = rgb.x;
+    float g = rgb.y;
+    float b = rgb.z;
+    float h, s, v;
+    float maxValue = max(r, max(g, b));
+    float minValue = min(r, min(g, b));
+
+    if (maxValue == minValue)
+    {
+        h = 0;
+    }
+    else if (minValue == b)
+    {
+        h = 60 * (g - r) / (maxValue - minValue) + 60;
+    }
+    else if (minValue == r)
+    {
+        h = 60 * (b - g) / (maxValue - minValue) + 180;
+    }
+    else if (minValue == g){
+        h = 60 * (r - b) / (maxValue - minValue) + 300;
+    }
+    s = maxValue - minValue;
+    v = maxValue;
+    return float3(h, s, v);
+}
+
+float4 hsv2rgb(float3 hsv)
+{
+    float h = hsv.x;
+    float s = hsv.y;
+    float v = hsv.z;
+
+    float c = s;
+    float h2 = h / 60;
+    float x = c * (1 - abs(fmod(h2, 2) - 1));
+
+    float r = v - c;
+    float g = v - c;
+    float b = v - c;
+
+    if(h2 < 1)
+    {
+        r += c;
+        g += x;
+    }
+    else if (h2 < 2)
+    {
+        r += x;
+        g += c;
+    }
+    else if(h2 < 3)
+    {
+        g += c;
+        b += x;
+    }
+    else if (h2 < 4)
+    {
+        g += x;
+        b += c;
+    }
+    else if (h2 < 5){
+        r += x;
+        b += c;
+    }
+    else if (h2 < 6)
+    {
+        r += c;
+        b += x;
+    }
+    return float4(r, g, b, 1);
+}
+
+[numthreads(32, 32, 1)]
+void Process(uint3 id : SV_DispatchThreadID)
+{
+    float3 hsv00 = rgb2hsv(Texture[id.xy + float2(-1, -1)]);
+    float3 hsv01 = rgb2hsv(Texture[id.xy + float2(-1, 0)]);
+    float3 hsv02 = rgb2hsv(Texture[id.xy + float2(-1, 1)]);
+    float3 hsv10 = rgb2hsv(Texture[id.xy + float2( 0, -1)]);
+    float3 hsv11 = rgb2hsv(Texture[id.xy + float2( 0, 0)]);
+    float3 hsv12 = rgb2hsv(Texture[id.xy + float2( 0, 1)]);
+    float3 hsv20 = rgb2hsv(Texture[id.xy + float2( 1, -1)]);
+    float3 hsv21 = rgb2hsv(Texture[id.xy + float2( 1, 0)]);
+    float3 hsv22 = rgb2hsv(Texture[id.xy + float2( 1, 1)]);
+
+    float a =  0.0, b =  0.0, c =  0.0;
+    float d =  0.0, e =  1.0, f =  0.0;
+    float g =  0.0, h =  0.0, i =  0.0;
+    float v = a * hsv00.z + b * hsv01.z + c * hsv02.z
+            + d * hsv10.z + e * hsv11.z + f * hsv12.z
+            + g * hsv20.z + h * hsv21.z + i * hsv22.z;
+    float3 hsv = float3(hsv11.x, hsv11.y, v);
+    Result[id.xy] = hsv2rgb(hsv);
+}
