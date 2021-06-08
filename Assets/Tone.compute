@@ -82,12 +82,12 @@ float4 hsv2rgb(float3 hsv)
     }
     return float4(r, g, b, 1);
 }
-
 [numthreads(32, 32, 1)]
 void Process(uint3 id : SV_DispatchThreadID)
 {
     float3 hsv = rgb2hsv(Texture[id.xy]);
+    float gmax = (sin(time) + 1.0) * 0.5;
     float gmin = exp(-1.0 * 6.0);
-    hsv.z = (exp(-(1 - hsv.z) * (1 - hsv.z)  * 6.0) - gmin) / (1.0 - gmin);
+    hsv.z = (gmax * exp(-(1 - hsv.z) * (1 - hsv.z)  * 6.0) - gmin) / (1.0 - gmin);
     Result[id.xy] = hsv2rgb(hsv);
 }
