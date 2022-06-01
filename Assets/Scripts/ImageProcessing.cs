@@ -35,12 +35,12 @@ public class ImageProcessing : MonoBehaviour
         _result.enableRandomWrite = true;
         _result.Create();
 
-        // テクスチャを適応する
+        // テクスチャを適用する
         GetComponent<MeshRenderer>().material.mainTexture = _result;
     }
     void Update()
     {
-        // GreayScaleのカーネルインデックス(0)を取得
+        // ComputeShaderのカーネルインデックス(0)を取得
         var kernelIndex = _computeShader.FindKernel("Process");
         // 一つのグループの中に何個のスレッドがあるか
         ThreadSize threadSize = new ThreadSize();
@@ -59,5 +59,4 @@ public class ImageProcessing : MonoBehaviour
     {
         _result = null;
     }
-
 }
